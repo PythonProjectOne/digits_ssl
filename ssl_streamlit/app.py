@@ -33,12 +33,12 @@ def prepare_digit(rgba):
     x = np.asarray(digit, dtype=np.float32).reshape(1, 784) / 255.0
     return digit, x
 
-def prediction(model, x, threshold):
+def prediction(model, x):
     probabilities = model.predict_proba(x)[0]
     idx = int(np.argmax(probabilities))
     label = int(model.classes_[idx])
     confidence = float(probabilities[idx])
-    return label, confidence, confidence >= threshold
+    return label, confidence
 
 st.title("Распознавание рукописных цифр")
 st.write("Сравнение обучения с учителем (SL) и частично контролируемого обучения (SSL).")
@@ -46,9 +46,7 @@ st.write("Сравнение обучения с учителем (SL) и час
 model_label = st.selectbox("Алгоритм", list(MODEL_NAMES))
 fraction_label = st.selectbox("Доля размеченных изображений при обучении", list(FRACTIONS), index=2)
 ssl_training_threshold = st.selectbox("Порог псевдоразметки при обучении SSL", [0.7, 0.8, 0.9], index=1)
-acceptance_threshold = st.slider("Минимальная уверенность для принятия ответа", 0.0, 1.0, 0.7, 0.01)
-st.caption("Порог псевдоразметки выбирает заранее обученную SSL-модель. Минимальная уверенность влияет только на принятие результата, без переобучения.")
-
+st.caption("Порог псевдоразметки выбирает заранее обученную SSL-модель.")
 st.subheader("Нарисуйте цифру от 0 до 9")
 
 if "canvas_version" not in st.session_state:
@@ -82,8 +80,8 @@ if st.button("Распознать", type="primary", use_container_width=True):
             else:
                 sl = load_model(sl_file)
                 ssl = load_model(ssl_file)
-                sl_result = prediction(sl, x, acceptance_threshold)
-                ssl_result = prediction(ssl, x, acceptance_threshold)
+                sl_result = prediction(sl, x)
+                ssl_result = prediction(ssl, x)
                 st.image(digit.resize((140, 140), Image.Resampling.NEAREST), caption="Изображение после обработки")
                 col1, col2 = st.columns(2)
                 for col, name, result in ((col1, "SL", sl_result), (col2, "SSL", ssl_result)):
@@ -91,10 +89,6 @@ if st.button("Распознать", type="primary", use_container_width=True):
                         st.subheader(name)
                         st.metric("Цифра", result[0])
                         st.metric("Уверенность", f"{result[1]:.1%}")
-                        if result[2]:
-                            st.success("Ответ принят")
-                        else:
-                            st.warning("Уверенность ниже порога")
         except ValueError as exc:
             st.warning(str(exc))
         except Exception as exc:
