@@ -10,6 +10,20 @@ st.set_page_config(page_title="Распознавание цифр — SL и SSL
 MODEL_DIR = Path(__file__).resolve().parent / "models"
 MODEL_NAMES = {"Логистическая регрессия": "lr", "Метод опорных векторов (SVM)": "svm"}
 FRACTIONS = {"1%": "1", "2,5%": "2.5", "5%": "5", "10%": "10"}
+BEST_THRESHOLDS = {
+    "lr": {
+        "1": 0.7,
+        "2.5": 0.9,
+        "5": 0.9,
+        "10": 0.9
+    },
+    "svm": {
+        "1": 0.8,
+        "2.5": 0.8,
+        "5": 0.8,
+        "10": 0.8
+    }
+}
 
 @st.cache_resource(show_spinner=False)
 def load_model(filename):
@@ -45,8 +59,6 @@ st.write("Сравнение обучения с учителем (SL) и час
 
 model_label = st.selectbox("Алгоритм", list(MODEL_NAMES))
 fraction_label = st.selectbox("Доля размеченных изображений при обучении", list(FRACTIONS), index=2)
-ssl_training_threshold = st.selectbox("Порог псевдоразметки при обучении SSL", [0.7, 0.8, 0.9], index=1)
-st.caption("Порог псевдоразметки выбирает заранее обученную SSL-модель.")
 st.subheader("Нарисуйте цифру от 0 до 9")
 
 if "canvas_version" not in st.session_state:
@@ -71,6 +83,10 @@ if st.button("Распознать", type="primary", use_container_width=True):
             digit, x = prepare_digit(canvas.image_data)
             algo = MODEL_NAMES[model_label]
             fraction = FRACTIONS[fraction_label]
+
+            # Автоматически выбираем оптимальный порог SSL
+            ssl_training_threshold = BEST_THRESHOLDS[algo][fraction]
+
             sl_file = f"{algo}_labeled_{fraction}_sl.joblib"
             ssl_file = f"{algo}_labeled_{fraction}_ssl_{ssl_training_threshold:.1f}.joblib"
             missing = [name for name in (sl_file, ssl_file) if not (MODEL_DIR / name).is_file()]
