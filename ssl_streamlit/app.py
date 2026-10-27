@@ -59,6 +59,13 @@ st.write("Сравнение обучения с учителем (SL) и час
 
 model_label = st.selectbox("Алгоритм", list(MODEL_NAMES))
 fraction_label = st.selectbox("Доля размеченных изображений при обучении", list(FRACTIONS), index=2)
+
+algo = MODEL_NAMES[model_label]
+fraction = FRACTIONS[fraction_label]
+
+ssl_training_threshold = BEST_THRESHOLDS[algo][fraction]
+
+st.caption(f"Порог уверенности для псевдоразметки SSL подбирается автоматически под выбранные условия для достижения наилучшего результата: {ssl_training_threshold:.1f}")
 st.subheader("Нарисуйте цифру от 0 до 9")
 
 if "canvas_version" not in st.session_state:
