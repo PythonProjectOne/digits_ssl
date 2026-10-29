@@ -8,7 +8,12 @@ from streamlit_drawable_canvas import st_canvas
 
 st.set_page_config(page_title="Распознавание цифр — SL и SSL", page_icon="🔢", layout="centered")
 MODEL_DIR = Path(__file__).resolve().parent / "models"
-MODEL_NAMES = {"Логистическая регрессия": "lr", "Метод опорных векторов (SVM)": "svm"}
+MODEL_NAMES = {
+    "Логистическая регрессия": "lr",
+    "Метод опорных векторов (SVM)": "svm",
+    "Случайный лес (Random Forest)": "rf",
+    "Метод ближайших соседей (KNN)": "knn",
+}
 FRACTIONS = {"1%": "1", "2,5%": "2.5", "5%": "5", "10%": "10"}
 BEST_THRESHOLDS = {
     "lr": {
@@ -22,7 +27,19 @@ BEST_THRESHOLDS = {
         "2.5": 0.8,
         "5": 0.8,
         "10": 0.8
-    }
+    },
+    "rf": {
+        "1": 0.9,
+        "2.5": 0.9,
+        "5": 0.9,
+        "10": 0.9,
+    },
+    "knn": {
+        "1": 0.7,
+        "2.5": 0.7,
+        "5": 0.7,
+        "10": 0.7,
+    },
 }
 
 @st.cache_resource(show_spinner=False)
